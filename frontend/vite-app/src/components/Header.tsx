@@ -12,50 +12,52 @@ import {
 } from "./ui/dropdown-menu";
 
 type User = {
-  name: string;
+  username: string;
 };
 
 type HeaderProps = {
   user?: User | null;
-  onLogin?: () => void;
-  onSignup?: () => void;
   onLogout?: () => void;
 };
 
 
 
 const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
-return (
-  <DropdownMenu>
-    <DropdownMenuTrigger asChild>
-      <Button variant="outline" size="sm" className="flex items-center gap-2">
-        <span>{user.name}</span>
-        <ChevronDown className="w-4 h-4" />
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" className="w-56">
-      <DropdownMenuLabel>Account</DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      <DropdownMenuItem
-        onClick={() => alert("Change password or name")}
-      >
-        Change Password / Name
-      </DropdownMenuItem>
-      <DropdownMenuItem
-        className="text-red-600 focus:text-red-700"
-        onClick={() => alert("Delete account")}
-      >
-        Delete Account
-      </DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
-);
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <span>{user.username}</span>
+          <ChevronDown className="w-4 h-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel>Account</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={() => alert("Change password")}
+        >
+          Change Password
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => alert("Change username")}
+        >
+          Change Username
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="text-red-600 focus:text-red-700"
+          onClick={() => alert("Delete account")}
+        >
+          Delete Account
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 };
 
 const Header: React.FC<HeaderProps> = ({
   user,
-  onLogin,
-  onSignup,
   onLogout,
 }) => {
   const location = useLocation();
@@ -85,12 +87,14 @@ const Header: React.FC<HeaderProps> = ({
         ) : (
           <>
             {!isLoginRoute && (
-              <Button variant="outline" onClick={onLogin}>
-                Login
+              <Button variant="outline" asChild>
+                <Link to="/login">Login</Link>
               </Button>
             )}
             {!isSignupRoute && (
-              <Button onClick={onSignup}>Sign up</Button>
+              <Button variant="outline" asChild>
+                <Link to="/signup">Sign up</Link>
+              </Button>
             )}
           </>
         )}
