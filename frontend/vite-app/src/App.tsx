@@ -46,6 +46,16 @@ function App() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ refresh: refresh_token }),
           });
+
+          if (!refreshRes.ok) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            setUser(null);
+            setAccess_token(null);
+            setRefresh_token(null);
+            return;
+          }
+
           const refreshData = await refreshRes.json();
           const newToken = refreshData.access;
           localStorage.setItem("access_token", newToken);
