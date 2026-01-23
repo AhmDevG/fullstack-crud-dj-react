@@ -24,7 +24,7 @@ function App() {
             if (!access_token && !refresh_token) return;
 
             try {
-                let token = access_token;
+                const token = access_token;
                 let response = await fetch(`${API}/profile/`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
