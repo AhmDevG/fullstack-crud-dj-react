@@ -11,11 +11,6 @@ interface ProductPageProps {
   date: string;
 }
 
-interface User {
-  id: string;
-  username: string;
-}
-
 const API = "http://127.0.0.1:8000/api";
 
 function ProductsWrapper({ children }: { children: React.ReactNode }) {
