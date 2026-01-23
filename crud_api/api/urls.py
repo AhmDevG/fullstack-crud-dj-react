@@ -8,6 +8,7 @@ from .views import (
     ProductCreateView,
     ProductListView,
     ProfileView,
+    # UserDetailView,
     create_user,
     delete_account,
     logout,
@@ -26,4 +27,5 @@ urlpatterns = [
     path("create-user/", create_user, name="create_user"),
     path("create-product/", ProductCreateView.as_view(), name="product_create"),
     path("list-products/", ProductListView.as_view(), name="product_list"),
+    # path("detail-user/<int:pk>/", UserDetailView.as_view(), name="product_detail"),
 ]

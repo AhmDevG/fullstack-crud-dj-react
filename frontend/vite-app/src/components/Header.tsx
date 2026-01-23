@@ -8,7 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuItem
+  DropdownMenuItem,
 } from "./ui/dropdown-menu";
 
 type User = {
@@ -19,8 +19,6 @@ type HeaderProps = {
   user?: User | null;
   onLogout?: () => void;
 };
-
-
 
 const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
   return (
@@ -34,14 +32,10 @@ const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() => alert("Change password")}
-        >
+        <DropdownMenuItem onClick={() => alert("Change password")}>
           Change Password
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => alert("Change username")}
-        >
+        <DropdownMenuItem onClick={() => alert("Change username")}>
           Change Username
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -56,10 +50,7 @@ const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
   );
 };
 
-const Header: React.FC<HeaderProps> = ({
-  user,
-  onLogout,
-}) => {
+const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
   const location = useLocation();
 
   const isLoginRoute = location.pathname === "/login";
@@ -68,15 +59,13 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="flex justify-between items-center px-8 py-4 bg-muted border-b">
-      <h1 className="text-xl font-bold">
-        Product App
-      </h1>
+      <h1 className="text-xl font-bold">Product App</h1>
       <nav className="flex gap-4">
         {user ? (
           <>
-              <Button variant="destructive" onClick={onLogout}>
-                Logout
-              </Button>
+            <Button variant="destructive" onClick={onLogout}>
+              Logout
+            </Button>
             {!isProductsRoute && (
               <Button variant="outline" asChild>
                 <Link to="/products">Products</Link>

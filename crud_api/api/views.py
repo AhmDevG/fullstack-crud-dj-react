@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Product
-from .serializers import ProductSerializer
+from .serializers import ProductSerializer, UserSerializer
 
 
 class ProfileView(APIView):
@@ -26,8 +26,8 @@ class ProductCreateView(CreateAPIView):
 
 class ProductListView(ListAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    queryset = Product.objects.select_related("author").all()
 
 
 @api_view(["DELETE"])

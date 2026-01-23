@@ -1,19 +1,22 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface ProductPageProps {
-  productId: string;
-  productName: string;
-  ProductDescription: string;
-  ProductPrice: number;
-  ProductAuthor: string;
-  ProductDate: string;
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  author: { username: string };
+  date: string;
 }
+
+interface User {
+  id: string;
+  username: string;
+}
+
+const API = "http://127.0.0.1:8000/api";
 
 function ProductsWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -26,64 +29,67 @@ function ProductsWrapper({ children }: { children: React.ReactNode }) {
 }
 
 function ProductComponent({
-  productId,
-  productName,
-  ProductDescription,
-  ProductPrice,
-  ProductAuthor,
-  ProductDate,
+  id,
+  name,
+  description,
+  price,
+  author,
+  date,
 }: ProductPageProps) {
   return (
     <Card className="max-w-md mt-8">
       <CardHeader>
-        <CardTitle>{productName}</CardTitle>
+        <CardTitle>{name}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="mb-2">{ProductDescription}</p>
-        <p className="font-semibold">Price: ${ProductPrice}</p>
-        <p className="mb-2">ID: {productId}</p>
+        <p className="mb-2">{description}</p>
+        <p className="font-semibold">Price: ${price}</p>
+        <p className="mb-2">ID: {id}</p>
 
         <p className="text-gray-400 ml-auto mt-4 text-right">
-          Date: {ProductDate}
+          Date: {date.split("T")[0]}
         </p>
         <p className="text-gray-400 ml-auto text-right">
-          Author: {ProductAuthor}
+          Author: {author.username}
         </p>
       </CardContent>
     </Card>
   );
 }
 
-const products = [
-  {
-    productId: "12345",
-    productName: "Sample Product",
-    ProductDescription: "This is a sample product description.",
-    ProductPrice: 99.99,
-    ProductAuthor: "John Doe",
-    ProductDate: "2023-01-01",
-  },
-  {
-    productId: "67890",
-    productName: "Another Product",
-    ProductDescription: "This is another product description.",
-    ProductPrice: 149.99,
-    ProductAuthor: "Jane Smith",
-    ProductDate: "2023-02-01",
-  },
-];
+export function ProductPage({ access_token }: { access_token: string }) {
+  const [products, setProducts] = useState<ProductPageProps[]>([]);
+  const navigate = useNavigate();
 
-export function ProductPage() {
+  useEffect(() => {
+    fetch(`${API}/list-products/`, {
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    })
+      .then((response) => {
+        if (!response.ok) {
+          navigate("/login");
+          return;
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setProducts(data);
+      });
+  }, []);
+
   return (
     <ProductsWrapper>
       {products.map((product) => (
         <ProductComponent
-          productId={product.productId}
-          productName={product.productName}
-          ProductDescription={product.ProductDescription}
-          ProductPrice={product.ProductPrice}
-          ProductAuthor={product.ProductAuthor}
-          ProductDate={product.ProductDate}
+          key={product.id}
+          id={product.id}
+          name={product.name}
+          description={product.description}
+          price={product.price}
+          author={product.author}
+          date={product.date}
         />
       ))}
     </ProductsWrapper>
