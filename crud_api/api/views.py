@@ -4,9 +4,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.views import APIView, ListAPIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .models import Product
 from .serializers import ProductSerializer
 
 
@@ -23,13 +24,10 @@ class ProductCreateView(CreateAPIView):
     serializer_class = ProductSerializer
 
 
-class ProductListView(APIView):
+class ProductListView(ListAPIView):
     permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        products = Product.objects.filter(author=request.user)
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data)
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
 
 
 @api_view(["DELETE"])
