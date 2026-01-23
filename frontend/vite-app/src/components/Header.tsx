@@ -128,9 +128,7 @@ export function ModalHandler({ user, action }: EditUserProps) {
           <DialogTitle>
             {action == Action.ADD_PRODUCT ? "Add Product" : "Handle Account"}
           </DialogTitle>
-          <DialogDescription>
-            Make changes to your profile here. Click save when done.
-          </DialogDescription>
+          <DialogDescription>Make changes to your data here.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-4">
