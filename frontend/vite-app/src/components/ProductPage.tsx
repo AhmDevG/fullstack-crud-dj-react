@@ -73,13 +73,9 @@ function ProductComponent({
             </div>
           )}
 
-          <div>
-            <p className="text-gray-400 ml-auto mt-4 text-right">
-              Date: {date.split("T")[0]}
-            </p>
-            <p className="text-gray-400 ml-auto text-right">
-              Author: {author.username}
-            </p>
+          <div className="text-gray-400 ml-auto mt-4 text-right">
+            <p>Date: {date.split("T")[0]}</p>
+            <p>Author: {author.username}</p>
           </div>
         </div>
       </CardContent>
