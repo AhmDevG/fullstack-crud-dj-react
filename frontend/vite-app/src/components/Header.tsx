@@ -36,11 +36,12 @@ type HeaderProps = {
   setProducts?: React.Dispatch<React.SetStateAction<Product[]>>;
 };
 
-enum Action {
+export enum Action {
   EDIT_USERNAME,
   EDIT_PASSWORD,
   DELETE_ACCOUNT,
   ADD_PRODUCT,
+  EDIT_PRODUCT,
 }
 
 const API = "http://127.0.0.1:8000/api";
@@ -55,12 +56,18 @@ function handleActionTitle(action: Action) {
       return "Delete Account";
     case Action.ADD_PRODUCT:
       return "Add Product";
+    case Action.EDIT_PRODUCT:
+      return "Edit";
     default:
       return "";
   }
 }
 
-function handleActionInput(user: User, action: Action) {
+function handleActionInput(
+  user: User,
+  action: Action,
+  product_id: number | null = null,
+) {
   switch (action) {
     case Action.EDIT_USERNAME:
       return (
@@ -101,21 +108,37 @@ function handleActionInput(user: User, action: Action) {
           <Input id="description" name="description" required />
         </>
       );
+    case Action.EDIT_PRODUCT:
+      return (
+        <>
+          <Label htmlFor="id">ID</Label>
+          <Input id="id" name="id" type="number" required />
+
+          <Label htmlFor="name">Name</Label>
+          <Input id="name" name="name" required />
+
+          <Label htmlFor="price">Price</Label>
+          <Input id="price" name="price" type="number" required />
+
+          <Label htmlFor="description">Description</Label>
+          <Input id="description" name="description" required />
+        </>
+      );
     default:
       return null;
   }
 }
 
-interface Product {
-  product: {
-    id: string;
-    name: string;
-    price: number;
-    description: string;
-  };
-}
+export type Product = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  author: User;
+  date: string;
+};
 
-interface EditUserProps {
+interface EditDataProps {
   user: User | null;
   action: Action;
   products: Product[];
@@ -127,7 +150,7 @@ export function ModalHandler({
   action,
   products,
   setProducts,
-}: EditUserProps) {
+}: EditDataProps) {
   if (!user) return null;
   const [alert, setAlert] = useState<{
     type: "default" | "destructive";
@@ -191,14 +214,15 @@ export function ModalHandler({
         });
     }
   };
+  //
 
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button
           size="sm"
-          className="w-full text-left flex justify-start pl-2 m-0"
-          variant="ghost"
+          className={`text-left flex justify-start  m-0 ${action == Action.EDIT_PRODUCT ? "w-fit mt-4 p-[17px]" : "w-full"}`}
+          variant={`${action == Action.EDIT_PRODUCT ? "secondary" : "ghost"}`}
         >
           {handleActionTitle(action)}
         </Button>
@@ -207,7 +231,9 @@ export function ModalHandler({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {action == Action.ADD_PRODUCT ? "Add Product" : "Handle Account"}
+            {action == Action.ADD_PRODUCT || action == Action.EDIT_PRODUCT
+              ? "Handle Product"
+              : "Handle Account"}
           </DialogTitle>
           <DialogDescription>Make changes to your data here.</DialogDescription>
           {alert && (

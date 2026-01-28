@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { ModalHandler, Action } from "./Header.tsx";
+import type { Product } from "./Header.tsx";
 
 interface User {
   id: number;
@@ -18,15 +20,8 @@ interface ProductPageProps {
   author: User;
   date: string;
   user: User;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  author: User;
-  date: string;
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
 const API = "http://127.0.0.1:8000/api";
@@ -49,6 +44,8 @@ function ProductComponent({
   author,
   date,
   user,
+  products,
+  setProducts,
 }: ProductPageProps) {
   return (
     <Card className="max-w-md mt-8">
@@ -62,9 +59,18 @@ function ProductComponent({
 
         <div className="flex flex-col sm:flex-row justify-between">
           {user.id == author.id && (
-            <Button variant="destructive" className="mt-4">
-              Delete
-            </Button>
+            <div className="flex flex-col sm:flex-row">
+              <Button variant="destructive" className="mt-4">
+                Delete
+              </Button>
+
+              <ModalHandler
+                products={products}
+                user={author}
+                setProducts={setProducts}
+                action={Action.EDIT_PRODUCT}
+              />
+            </div>
           )}
 
           <div>
@@ -108,7 +114,6 @@ export function ProductPage({
         return response.json();
       })
       .then((data) => {
-        console.log(data);
         setProducts(data);
       });
   }, []);
@@ -125,6 +130,8 @@ export function ProductPage({
           author={product.author}
           date={product.date}
           user={user}
+          products={products}
+          setProducts={setProducts}
         />
       ))}
     </ProductsWrapper>
