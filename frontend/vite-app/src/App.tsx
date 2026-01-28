@@ -146,6 +146,7 @@ function App() {
               access_token={access_token}
               products={products}
               setProducts={setProducts}
+              user={user}
             />
           }
         />

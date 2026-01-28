@@ -1,13 +1,31 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  date_joined: string;
+}
 
 interface ProductPageProps {
   id: string;
   name: string;
   description: string;
   price: number;
-  author: { username: string };
+  author: User;
+  date: string;
+  user: User;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  author: User;
   date: string;
 }
 
@@ -30,6 +48,7 @@ function ProductComponent({
   price,
   author,
   date,
+  user,
 }: ProductPageProps) {
   return (
     <Card className="max-w-md mt-8">
@@ -41,12 +60,22 @@ function ProductComponent({
         <p className="font-semibold">Price: ${price}</p>
         <p className="mb-2">ID: {id}</p>
 
-        <p className="text-gray-400 ml-auto mt-4 text-right">
-          Date: {date.split("T")[0]}
-        </p>
-        <p className="text-gray-400 ml-auto text-right">
-          Author: {author.username}
-        </p>
+        <div className="flex flex-col sm:flex-row justify-between">
+          {user.id == author.id && (
+            <Button variant="destructive" className="mt-4">
+              Delete
+            </Button>
+          )}
+
+          <div>
+            <p className="text-gray-400 ml-auto mt-4 text-right">
+              Date: {date.split("T")[0]}
+            </p>
+            <p className="text-gray-400 ml-auto text-right">
+              Author: {author.username}
+            </p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
@@ -56,10 +85,12 @@ export function ProductPage({
   access_token,
   products,
   setProducts,
+  user,
 }: {
   access_token: string;
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+  user: User;
 }) {
   const navigate = useNavigate();
 
@@ -77,6 +108,7 @@ export function ProductPage({
         return response.json();
       })
       .then((data) => {
+        console.log(data);
         setProducts(data);
       });
   }, []);
@@ -92,6 +124,7 @@ export function ProductPage({
           price={product.price}
           author={product.author}
           date={product.date}
+          user={user}
         />
       ))}
     </ProductsWrapper>
