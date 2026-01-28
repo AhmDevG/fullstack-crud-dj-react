@@ -19,6 +19,15 @@ type User = {
   email: string;
 };
 
+interface ProductPageProps {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  author: User;
+  date: string;
+}
+
 function App() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -29,6 +38,7 @@ function App() {
     localStorage.getItem("refresh_token"),
   );
   const location = useLocation();
+  const [products, setProducts] = useState<ProductPageProps[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -112,7 +122,12 @@ function App() {
 
   return (
     <>
-      <Header user={user} onLogout={onLogout} />
+      <Header
+        user={user}
+        onLogout={onLogout}
+        products={products}
+        setProducts={setProducts}
+      />
       <Routes>
         <Route
           path="/login"
@@ -126,9 +141,24 @@ function App() {
         />
         <Route
           path="/products"
-          element={<ProductPage access_token={access_token} />}
+          element={
+            <ProductPage
+              access_token={access_token}
+              products={products}
+              setProducts={setProducts}
+            />
+          }
         />
-        <Route path="/" element={<ProductPage access_token={access_token} />} />
+        <Route
+          path="/"
+          element={
+            <ProductPage
+              access_token={access_token}
+              products={products}
+              setProducts={setProducts}
+            />
+          }
+        />
         <Route path="/signup" element={<SignUpPage />} />
       </Routes>
     </>

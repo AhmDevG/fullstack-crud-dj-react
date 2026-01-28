@@ -52,8 +52,15 @@ function ProductComponent({
   );
 }
 
-export function ProductPage({ access_token }: { access_token: string }) {
-  const [products, setProducts] = useState<ProductPageProps[]>([]);
+export function ProductPage({
+  access_token,
+  products,
+  setProducts,
+}: {
+  access_token: string;
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+}) {
   const navigate = useNavigate();
 
   useEffect(() => {

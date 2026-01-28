@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,8 +20,9 @@ import {
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuItem,
 } from "./ui/dropdown-menu";
+import { useNavigate } from "react-router-dom";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 type User = {
   username: string;
@@ -31,6 +32,8 @@ type User = {
 type HeaderProps = {
   user?: User | null;
   onLogout?: () => void;
+  products?: Product[];
+  setProducts?: React.Dispatch<React.SetStateAction<Product[]>>;
 };
 
 enum Action {
@@ -39,6 +42,8 @@ enum Action {
   DELETE_ACCOUNT,
   ADD_PRODUCT,
 }
+
+const API = "http://127.0.0.1:8000/api";
 
 function handleActionTitle(action: Action) {
   switch (action) {
@@ -60,35 +65,40 @@ function handleActionInput(user: User, action: Action) {
     case Action.EDIT_USERNAME:
       return (
         <>
-          <Label htmlFor="username">Username</Label>
-          <Input id="username" name="username" defaultValue={user.username} />
+          <Label htmlFor="username">User Name</Label>
+          <Input
+            id="username"
+            name="username"
+            defaultValue={user.username}
+            required
+          />
         </>
       );
     case Action.EDIT_PASSWORD:
       return (
         <>
           <Label htmlFor="password">Password</Label>
-          <Input id="password" name="password" type="password" />
+          <Input id="password" name="password" type="password" required />
         </>
       );
     case Action.DELETE_ACCOUNT:
       return (
         <>
           <Label htmlFor="password">Password</Label>
-          <Input id="password" name="password" type="password" />
+          <Input id="password" name="password" type="password" required />
         </>
       );
     case Action.ADD_PRODUCT:
       return (
         <>
           <Label htmlFor="name">Name</Label>
-          <Input id="name" name="name" />
+          <Input id="name" name="name" required />
 
           <Label htmlFor="price">Price</Label>
-          <Input id="price" name="price" type="number" />
+          <Input id="price" name="price" type="number" required />
 
           <Label htmlFor="description">Description</Label>
-          <Input id="description" name="description" />
+          <Input id="description" name="description" required />
         </>
       );
     default:
@@ -96,19 +106,89 @@ function handleActionInput(user: User, action: Action) {
   }
 }
 
+interface Product {
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    description: string;
+  };
+}
+
 interface EditUserProps {
   user: User | null;
   action: Action;
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
-export function ModalHandler({ user, action }: EditUserProps) {
+export function ModalHandler({
+  user,
+  action,
+  products,
+  setProducts,
+}: EditUserProps) {
   if (!user) return null;
+  const [alert, setAlert] = useState<{
+    type: "default" | "destructive";
+    title: string;
+    description: string;
+  } | null>(null);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
-    console.log("Form submitted:", data);
+
+    if (action == Action.ADD_PRODUCT) {
+      console.log("Form submitted:", data);
+
+      fetch(`${API}/create-product/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+        body: JSON.stringify(data),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            setAlert({
+              type: "destructive",
+              title: "Failed to create product",
+              description: "Please try again later.",
+            });
+            return;
+          } else {
+            return response.json();
+          }
+        })
+        .then((_) => {
+          setAlert({
+            type: "default",
+            title: "Product created successfully",
+            description: "Product has been created.",
+          });
+
+          fetch(`${API}/list-products/`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            },
+          })
+            .then((response) => {
+              if (!response.ok) {
+                navigate("/login");
+                return;
+              }
+              return response.json();
+            })
+            .then((data) => {
+              setProducts(data);
+            });
+        })
+        .catch((error) => console.error(error));
+    }
   };
 
   return (
@@ -129,6 +209,12 @@ export function ModalHandler({ user, action }: EditUserProps) {
             {action == Action.ADD_PRODUCT ? "Add Product" : "Handle Account"}
           </DialogTitle>
           <DialogDescription>Make changes to your data here.</DialogDescription>
+          {alert && (
+            <Alert variant={alert.type} className="mb-4">
+              <AlertTitle>{alert.title}</AlertTitle>
+              <AlertDescription>{alert.description}</AlertDescription>
+            </Alert>
+          )}
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-4">
@@ -147,7 +233,11 @@ export function ModalHandler({ user, action }: EditUserProps) {
   );
 }
 
-const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
+const UserAvatar: React.FC<{
+  user: User;
+  products: Product[];
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+}> = ({ user, products, setProducts }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -162,19 +252,44 @@ const UserAvatar: React.FC<{ user: User }> = ({ user }) => {
 
         <DropdownMenuSeparator />
 
-        <ModalHandler user={user} action={Action.EDIT_USERNAME} />
-        <ModalHandler user={user} action={Action.EDIT_PASSWORD} />
-        <ModalHandler user={user} action={Action.DELETE_ACCOUNT} />
+        <ModalHandler
+          user={user}
+          action={Action.EDIT_USERNAME}
+          products={products}
+          setProducts={setProducts}
+        />
+        <ModalHandler
+          user={user}
+          action={Action.EDIT_PASSWORD}
+          products={products}
+          setProducts={setProducts}
+        />
+        <ModalHandler
+          user={user}
+          action={Action.DELETE_ACCOUNT}
+          products={products}
+          setProducts={setProducts}
+        />
 
         <DropdownMenuSeparator />
 
-        <ModalHandler user={user} action={Action.ADD_PRODUCT} />
+        <ModalHandler
+          user={user}
+          action={Action.ADD_PRODUCT}
+          products={products}
+          setProducts={setProducts}
+        />
       </DropdownMenuContent>
     </DropdownMenu>
   );
 };
 
-const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
+const Header: React.FC<HeaderProps> = ({
+  user,
+  onLogout,
+  products,
+  setProducts,
+}) => {
   const location = useLocation();
 
   const isLoginRoute = location.pathname === "/login";
@@ -195,7 +310,11 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
                 <Link to="/products">Products</Link>
               </Button>
             )}
-            <UserAvatar user={user} />
+            <UserAvatar
+              user={user}
+              products={products}
+              setProducts={setProducts}
+            />
           </>
         ) : (
           <>
