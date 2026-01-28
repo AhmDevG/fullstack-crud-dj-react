@@ -154,12 +154,7 @@ export function ModalHandler({
       })
         .then((response) => {
           if (!response.ok) {
-            setAlert({
-              type: "destructive",
-              title: "Failed to create product",
-              description: "Please try again later.",
-            });
-            return;
+            throw new Error("Failed to create product");
           } else {
             return response.json();
           }
@@ -187,7 +182,13 @@ export function ModalHandler({
               setProducts(data);
             });
         })
-        .catch((error) => console.error(error));
+        .catch((error) => {
+          setAlert({
+            type: "destructive",
+            title: "Failed to create product",
+            description: "Please try again later.",
+          });
+        });
     }
   };
 
