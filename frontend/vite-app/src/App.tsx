@@ -53,7 +53,6 @@ function App() {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ refresh: refresh_token }),
             });
-
             localStorage.removeItem("access_token");
             localStorage.removeItem("refresh_token");
             setUser(null);
@@ -98,6 +97,11 @@ function App() {
   }
 
   function onLogout() {
+    fetch(`${API}/api/logout/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh: refresh_token }),
+    });
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
     setUser(null);
