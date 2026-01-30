@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ModalHandler, Action } from "./Header.tsx";
@@ -60,9 +60,12 @@ function ProductComponent({
         <div className="flex flex-col sm:flex-row justify-between">
           {user.id == author.id && (
             <div className="flex flex-col sm:flex-row">
-              <Button variant="destructive" className="mt-4">
-                Delete
-              </Button>
+              <ModalHandler
+                products={products}
+                user={author}
+                setProducts={setProducts}
+                action={Action.DELETE_PRODUCT}
+              />
 
               <ModalHandler
                 products={products}

@@ -42,6 +42,7 @@ export enum Action {
   DELETE_ACCOUNT,
   ADD_PRODUCT,
   EDIT_PRODUCT,
+  DELETE_PRODUCT,
 }
 
 const API = "http://127.0.0.1:8000/api";
@@ -58,6 +59,8 @@ function handleActionTitle(action: Action) {
       return "Add Product";
     case Action.EDIT_PRODUCT:
       return "Edit";
+    case Action.DELETE_PRODUCT:
+      return "Delete";
     default:
       return "";
   }
@@ -124,6 +127,8 @@ function handleActionInput(
           <Input id="description" name="description" required />
         </>
       );
+    case Action.DELETE_PRODUCT:
+      return <p>Are you sure you want to delete this product?</p>;
     default:
       return null;
   }
@@ -221,8 +226,10 @@ export function ModalHandler({
       <DialogTrigger asChild>
         <Button
           size="sm"
-          className={`text-left flex justify-start  m-0 ${action == Action.EDIT_PRODUCT ? "w-fit mt-4 p-[17px]" : "w-full"}`}
-          variant={`${action == Action.EDIT_PRODUCT ? "secondary" : "ghost"}`}
+          className={`text-left flex justify-start  m-0
+                    ${action == Action.EDIT_PRODUCT ? "w-fit mt-4 p-[17px]" : "w-full"}
+                    ${action == Action.DELETE_PRODUCT ? "w-fit mt-4 p-[17px]" : ""}`}
+          variant={`${action == Action.EDIT_PRODUCT ? "secondary" : action == Action.DELETE_PRODUCT ? "destructive" : "ghost"}`}
         >
           {handleActionTitle(action)}
         </Button>
@@ -231,7 +238,9 @@ export function ModalHandler({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {action == Action.ADD_PRODUCT || action == Action.EDIT_PRODUCT
+            {action == Action.ADD_PRODUCT ||
+            action == Action.EDIT_PRODUCT ||
+            action == Action.DELETE_PRODUCT
               ? "Handle Product"
               : "Handle Account"}
           </DialogTitle>
@@ -252,7 +261,14 @@ export function ModalHandler({
               <Button variant="outline">Cancel</Button>
             </DialogClose>
 
-            <Button type="submit">Save changes</Button>
+            {action == Action.DELETE_PRODUCT && (
+              <Button variant="destructive" type="submit">
+                Delete
+              </Button>
+            )}
+            {action != Action.DELETE_PRODUCT && (
+              <Button type="submit">Save changes</Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
