@@ -58,7 +58,7 @@ function App() {
           });
 
           if (!refreshRes.ok) {
-            fetch(`${API}/api/logout/`, {
+            fetch(`${API}/logout/`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ refresh: refresh_token }),
