@@ -1,9 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEffect } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { ModalHandler, Action } from "./Header.tsx";
 import type { Product } from "./Header.tsx";
+import API from "./utils/globals";
+import { authFetch } from "./utils/authFetch.ts";
+import { Spinner } from "@/components/ui/spinner";
 
 interface User {
   id: number;
@@ -23,8 +26,6 @@ interface ProductPageProps {
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
-
-const API = "http://127.0.0.1:8000/api";
 
 function ProductsWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -86,6 +87,14 @@ function ProductComponent({
   );
 }
 
+function Loading() {
+  return (
+    <div className="flex items-center justify-center h-[calc(100vh-69px)]">
+      <Spinner className="size-8" />
+    </div>
+  );
+}
+
 export function ProductPage({
   access_token,
   products,
@@ -100,39 +109,40 @@ export function ProductPage({
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch(`${API}/list-products/`, {
-      headers: {
-        Authorization: `Bearer ${access_token}`,
-      },
-    })
-      .then((response) => {
-        if (!response.ok) {
-          navigate("/login");
-          return;
-        }
-        return response.json();
-      })
-      .then((data) => {
+    const fetchProducts = async () => {
+      const res = await authFetch("/list-products/", {}, navigate);
+
+      if (res.ok) {
+        const data = await res.json();
+        console.log(data);
         setProducts(data);
-      });
-  }, [access_token, navigate, setProducts]);
+      } else {
+        navigate("/login");
+      }
+    };
+
+    fetchProducts();
+  }, [navigate, setProducts]);
 
   return (
-    <ProductsWrapper>
-      {products.map((product) => (
-        <ProductComponent
-          key={product.id}
-          id={product.id}
-          name={product.name}
-          description={product.description}
-          price={product.price}
-          author={product.author}
-          date={product.date}
-          user={user}
-          products={products}
-          setProducts={setProducts}
-        />
-      ))}
-    </ProductsWrapper>
+    <Suspense fallback={<Loading />}>
+      <ProductsWrapper>
+        {Array.isArray(products) &&
+          products.map((product) => (
+            <ProductComponent
+              key={product.id}
+              id={product.id}
+              name={product.name}
+              description={product.description}
+              price={product.price}
+              author={product.author}
+              date={product.date}
+              user={user}
+              products={products}
+              setProducts={setProducts}
+            />
+          ))}
+      </ProductsWrapper>
+    </Suspense>
   );
 }

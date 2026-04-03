@@ -4,6 +4,7 @@ import {
   Route,
   useNavigate,
   useLocation,
+  // Navigate,
 } from "react-router-dom";
 import LoginPage from "./components/Login_Page";
 import Header from "./components/Header";
@@ -11,8 +12,8 @@ import { ProductPage } from "./components/ProductPage";
 import SignUpPage from "./components/SignUpPage";
 import { useEffect, useState } from "react";
 import LoadingPage from "./components/Loading_Page";
-
-const API = "http://127.0.0.1:8000/api";
+import API from "./components/utils/globals";
+import { authFetch } from "./components/utils/authFetch";
 
 type User = {
   username: string;
@@ -58,58 +59,17 @@ function App() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!access_token && !refresh_token) {
-        setLoading(false);
-        return;
-      }
-
       try {
-        const token = access_token;
-        let response = await fetch(`${API}/profile/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!response.ok && refresh_token) {
-          const refreshRes = await fetch(`${API}/token/refresh/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ refresh: refresh_token }),
-          });
-
-          if (!refreshRes.ok) {
-            fetch(`${API}/logout/`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ refresh: refresh_token }),
-            });
-            localStorage.removeItem("access_token");
-            localStorage.removeItem("refresh_token");
-            setUser(null);
-            setAccess_token(null);
-            setRefresh_token(null);
-            setLoading(false);
-            return;
-          }
-
-          const refreshData = await refreshRes.json();
-          const newToken = refreshData.access;
-          localStorage.setItem("access_token", newToken);
-          setAccess_token(newToken);
-
-          response = await fetch(`${API}/profile/`, {
-            headers: { Authorization: `Bearer ${newToken}` },
-          });
-        }
-
-        if (response.ok) {
-          const data = await response.json();
+        const res: Response = await authFetch("/profile/", {}, navigate);
+        if (res.ok) {
+          const data = await res.json();
           setUser(data);
         }
       } catch (err) {
         console.log(err);
+      } finally {
+        setLoading(false);
       }
-
-      setLoading(false);
     };
 
     fetchProfile();

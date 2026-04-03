@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Spinner } from "@/components/ui/spinner";
-
-const API = "http://127.0.0.1:8000/api";
+import API from "./utils/globals";
 
 interface LoginPageProps {
   setUser: (user: any) => void;

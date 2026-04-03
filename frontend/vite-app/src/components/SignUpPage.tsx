@@ -5,8 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
-
-const API = "http://127.0.0.1:8000/api";
+import API from "./utils/globals";
 
 function SignUpPage() {
   const [alert, setAlert] = useState<{

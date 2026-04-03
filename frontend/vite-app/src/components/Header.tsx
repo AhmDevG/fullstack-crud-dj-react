@@ -23,6 +23,7 @@ import {
 } from "./ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import API from "./utils/globals";
 
 type User = {
   username: string;
@@ -44,8 +45,6 @@ export enum Action {
   EDIT_PRODUCT,
   DELETE_PRODUCT,
 }
-
-const API = "http://127.0.0.1:8000/api";
 
 function handleActionTitle(action: Action) {
   switch (action) {
