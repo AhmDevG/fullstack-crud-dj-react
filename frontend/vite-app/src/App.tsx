@@ -10,6 +10,7 @@ import Header from "./components/Header";
 import { ProductPage } from "./components/ProductPage";
 import SignUpPage from "./components/SignUpPage";
 import { useEffect, useState } from "react";
+import LoadingPage from "./components/Loading_Page";
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -129,7 +130,7 @@ function App() {
   }
 
   return loading ? (
-    <div>Loading...</div>
+    <LoadingPage user={user} onLogout={onLogout} />
   ) : (
     <>
       <Header
