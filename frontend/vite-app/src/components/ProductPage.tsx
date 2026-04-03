@@ -115,7 +115,7 @@ export function ProductPage({
       .then((data) => {
         setProducts(data);
       });
-  }, []);
+  }, [access_token, navigate, setProducts]);
 
   return (
     <ProductsWrapper>

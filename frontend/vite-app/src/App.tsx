@@ -128,7 +128,9 @@ function App() {
     navigate("/login");
   }
 
-  return (
+  return loading ? (
+    <div>Loading...</div>
+  ) : (
     <>
       <Header
         user={user}
