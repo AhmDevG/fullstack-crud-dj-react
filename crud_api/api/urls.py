@@ -9,7 +9,6 @@ from .views import (
     ProductEditView,
     ProductListView,
     ProfileView,
-    # UserDetailView,
     create_user,
     delete_account,
     logout,

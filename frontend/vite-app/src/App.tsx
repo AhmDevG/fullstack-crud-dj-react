@@ -31,6 +31,7 @@ interface ProductPageProps {
 function App() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const [access_token, setAccess_token] = useState<string | null>(
     localStorage.getItem("access_token"),
   );
@@ -41,8 +42,25 @@ function App() {
   const [products, setProducts] = useState<ProductPageProps[]>([]);
 
   useEffect(() => {
+    if (loading) return;
+
+    if (
+      !user &&
+      location.pathname !== "/login" &&
+      location.pathname !== "/signup"
+    ) {
+      navigate("/login");
+    } else if (user && location.pathname === "/login") {
+      navigate("/products");
+    }
+  }, [user, location.pathname, navigate, loading]);
+
+  useEffect(() => {
     const fetchProfile = async () => {
-      if (!access_token && !refresh_token) return;
+      if (!access_token && !refresh_token) {
+        setLoading(false);
+        return;
+      }
 
       try {
         const token = access_token;
@@ -68,6 +86,7 @@ function App() {
             setUser(null);
             setAccess_token(null);
             setRefresh_token(null);
+            setLoading(false);
             return;
           }
 
@@ -88,23 +107,12 @@ function App() {
       } catch (err) {
         console.log(err);
       }
+
+      setLoading(false);
     };
 
     fetchProfile();
-    // eslint-disable-next-line
   }, []);
-
-  if (
-    !user &&
-    location.pathname !== "/login" &&
-    location.pathname !== "/signup"
-  ) {
-    navigate("/login");
-  }
-
-  if (user && location.pathname === "/login") {
-    navigate("/products");
-  }
 
   function onLogout() {
     fetch(`${API}/api/logout/`, {
