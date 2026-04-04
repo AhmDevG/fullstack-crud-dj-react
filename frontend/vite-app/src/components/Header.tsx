@@ -24,6 +24,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import API from "./utils/globals";
+import { authFetch } from "./utils/authFetch";
 
 type User = {
   username: string;
@@ -163,59 +164,54 @@ export function ModalHandler({
   } | null>(null);
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
 
-    if (action == Action.ADD_PRODUCT) {
-      console.log("Form submitted:", data);
+    if (action === Action.ADD_PRODUCT) {
+      try {
+        console.log("Form submitted:", data);
 
-      fetch(`${API}/create-product/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-        },
-        body: JSON.stringify(data),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to create product");
-          } else {
-            return response.json();
-          }
-        })
-        .then((_) => {
-          setAlert({
-            type: "default",
-            title: "Product created successfully",
-            description: "Product has been created.",
-          });
-
-          fetch(`${API}/list-products/`, {
+        const res = await authFetch(
+          "/create-product/",
+          {
+            method: "POST",
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              "Content-Type": "application/json",
             },
-          })
-            .then((response) => {
-              if (!response.ok) {
-                navigate("/login");
-                return;
-              }
-              return response.json();
-            })
-            .then((data) => {
-              setProducts(data);
-            });
-        })
-        .catch((error) => {
-          setAlert({
-            type: "destructive",
-            title: "Failed to create product",
-            description: "Please try again later.",
-          });
+            body: JSON.stringify(data),
+          },
+          navigate,
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to create product");
+        }
+
+        setAlert({
+          type: "default",
+          title: "Product created successfully",
+          description: "Product has been created.",
         });
+
+        const listRes = await authFetch("/list-products/", {}, navigate);
+
+        if (!listRes.ok) {
+          navigate("/login");
+          return;
+        }
+
+        const productsData = await listRes.json();
+        setProducts(productsData);
+      } catch (e) {
+        setAlert({
+          type: "destructive",
+          title: "Failed to create product",
+          description: "Please try again later.",
+        });
+      }
     }
   };
   //

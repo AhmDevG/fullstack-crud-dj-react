@@ -73,7 +73,7 @@ function App() {
     };
 
     fetchProfile();
-  }, []);
+  }, [navigate]);
 
   function onLogout() {
     fetch(`${API}/api/logout/`, {

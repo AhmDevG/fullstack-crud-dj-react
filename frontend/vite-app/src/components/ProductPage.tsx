@@ -114,7 +114,6 @@ export function ProductPage({
 
       if (res.ok) {
         const data = await res.json();
-        console.log(data);
         setProducts(data);
       } else {
         navigate("/login");
