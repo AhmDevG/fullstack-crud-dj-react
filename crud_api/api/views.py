@@ -53,12 +53,7 @@ class ProductDestroyView(DestroyAPIView):
         return Product.objects.filter(author=user)
 
 
-@api_view(["DELETE"])
-@permission_classes([IsAuthenticated])
-def delete_account(request):
-    user = request.user
-    user.delete()
-    return Response({"message": "User deleted"})
+
 
 
 @api_view(["POST"])
@@ -108,7 +103,7 @@ def logout(request):
         return Response({"error": str(e)}, status=400)
 
 
-@api_view(["PUT"])
+@api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_username(request):
     user = request.user
@@ -120,7 +115,7 @@ def update_username(request):
     return Response({"message": "Username updated", "username": user.username})
 
 
-@api_view(["PUT"])
+@api_view(["PATCH"])
 @permission_classes([IsAuthenticated])
 def update_password(request):
     user = request.user
@@ -137,3 +132,10 @@ def update_password(request):
             "refresh": str(refresh),
         }
     )
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_account(request):
+    user = request.user
+    user.delete()
+    return Response({"message": "User deleted"})

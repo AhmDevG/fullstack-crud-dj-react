@@ -33,6 +33,7 @@ type User = {
 
 type HeaderProps = {
   user?: User | null;
+  setUser?: React.Dispatch<React.SetStateAction<User | null>>;
   onLogout?: () => void;
   products?: Product[];
   setProducts?: React.Dispatch<React.SetStateAction<Product[]>>;
@@ -151,6 +152,7 @@ interface EditDataProps {
 export function ModalHandler({
   user,
   action,
+  setUser,
   // products,
   setProducts,
   productId = null,
@@ -304,6 +306,46 @@ export function ModalHandler({
         });
       }
     }
+    if(action == Action.EDIT_USERNAME){
+      try{
+        if(data.username.toString().trim()===""){
+          throw new Error("Username cannot be empty");
+        }
+        const res = await authFetch(`/update-username/`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username: data.username }),
+        }, navigate);
+
+        if (!res.ok) {
+          throw new Error("Failed to update username");
+        }
+        
+        setAlert({
+          type: "default",
+          title: "Username updated successfully",
+          description: "Username has been updated.",
+        });
+        const listRes = await authFetch("/list-products/", {}, navigate);
+
+        if (!listRes.ok) {
+          navigate("/login");
+          return;
+        }
+
+        setProducts(await listRes.json());
+        setUser((prev : User | null) => prev ? { ...prev, username: data.username as string } : prev);
+      }
+      catch(e){
+        setAlert({
+          type: "destructive",
+          title: "Failed to update username",
+          description: "Please try again later.",
+        });
+      }
+    }
   }
 
 
@@ -367,9 +409,10 @@ export function ModalHandler({
 
 const UserAvatar: React.FC<{
   user: User;
+    setUser: React.Dispatch<React.SetStateAction<User | null>>;
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
-}> = ({ user, products, setProducts }) => {
+}> = ({ user, products, setProducts, setUser }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -389,6 +432,7 @@ const UserAvatar: React.FC<{
           action={Action.EDIT_USERNAME}
           products={products}
           setProducts={setProducts}
+          setUser={setUser}
         />
         <ModalHandler
           user={user}
@@ -418,6 +462,7 @@ const UserAvatar: React.FC<{
 
 const Header: React.FC<HeaderProps> = ({
   user,
+  setUser,
   onLogout,
   products,
   setProducts,
@@ -444,6 +489,7 @@ const Header: React.FC<HeaderProps> = ({
             )}
             <UserAvatar
               user={user}
+              setUser = {setUser}
               products={products!}
               setProducts={setProducts!}
             />
