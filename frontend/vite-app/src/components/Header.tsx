@@ -321,7 +321,10 @@ export function ModalHandler({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[425px] [&>button]:hidden">
+      <DialogContent className="sm:max-w-[425px] [&>button]:hidden" 
+        onInteractOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>
             {action == Action.ADD_PRODUCT ||
