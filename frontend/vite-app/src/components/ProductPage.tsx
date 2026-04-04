@@ -66,6 +66,7 @@ function ProductComponent({
                 user={author}
                 setProducts={setProducts}
                 action={Action.DELETE_PRODUCT}
+                productId={parseInt(id)}
               />
 
               <ModalHandler
@@ -73,6 +74,7 @@ function ProductComponent({
                 user={author}
                 setProducts={setProducts}
                 action={Action.EDIT_PRODUCT}
+                productId={parseInt(id)}
               />
             </div>
           )}

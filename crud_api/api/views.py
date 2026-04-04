@@ -1,7 +1,12 @@
 from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.generics import CreateAPIView, ListAPIView, UpdateAPIView
+from rest_framework.generics import (
+    CreateAPIView,
+    DestroyAPIView,
+    ListAPIView,
+    UpdateAPIView,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -37,6 +42,15 @@ class ProductListView(ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ProductSerializer
     queryset = Product.objects.select_related("author").all()
+
+
+class ProductDestroyView(DestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Product.objects.filter(author=user)
 
 
 @api_view(["DELETE"])

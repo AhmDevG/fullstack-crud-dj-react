@@ -23,7 +23,7 @@ import {
 } from "./ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import API from "./utils/globals";
+// import API from "./utils/globals";
 import { authFetch } from "./utils/authFetch";
 
 type User = {
@@ -38,14 +38,16 @@ type HeaderProps = {
   setProducts?: React.Dispatch<React.SetStateAction<Product[]>>;
 };
 
-export enum Action {
-  EDIT_USERNAME,
-  EDIT_PASSWORD,
-  DELETE_ACCOUNT,
-  ADD_PRODUCT,
-  EDIT_PRODUCT,
-  DELETE_PRODUCT,
-}
+export const Action = {
+  EDIT_USERNAME: 'EDIT_USERNAME',
+  EDIT_PASSWORD: 'EDIT_PASSWORD',
+  DELETE_ACCOUNT: 'DELETE_ACCOUNT',
+  ADD_PRODUCT: 'ADD_PRODUCT',
+  EDIT_PRODUCT: 'EDIT_PRODUCT',
+  DELETE_PRODUCT: 'DELETE_PRODUCT',
+} as const;
+
+export type Action = typeof Action[keyof typeof Action];
 
 function handleActionTitle(action: Action) {
   switch (action) {
@@ -69,7 +71,6 @@ function handleActionTitle(action: Action) {
 function handleActionInput(
   user: User,
   action: Action,
-  product_id: number | null = null,
 ) {
   switch (action) {
     case Action.EDIT_USERNAME:
@@ -114,17 +115,14 @@ function handleActionInput(
     case Action.EDIT_PRODUCT:
       return (
         <>
-          <Label htmlFor="id">ID</Label>
-          <Input id="id" name="id" type="number" required />
-
           <Label htmlFor="name">Name</Label>
-          <Input id="name" name="name" required />
+          <Input id="name" name="name"  />
 
           <Label htmlFor="price">Price</Label>
-          <Input id="price" name="price" type="number" required />
+          <Input id="price" name="price" type="number"  />
 
           <Label htmlFor="description">Description</Label>
-          <Input id="description" name="description" required />
+          <Input id="description" name="description"  />
         </>
       );
     case Action.DELETE_PRODUCT:
@@ -153,9 +151,10 @@ interface EditDataProps {
 export function ModalHandler({
   user,
   action,
-  products,
+  // products,
   setProducts,
-}: EditDataProps) {
+  productId = null,
+}: EditDataProps & { productId?: number | null }) {
   if (!user) return null;
   const [alert, setAlert] = useState<{
     type: "default" | "destructive";
@@ -172,7 +171,7 @@ export function ModalHandler({
 
     if (action === Action.ADD_PRODUCT) {
       try {
-        console.log("Form submitted:", data);
+        // console.log("Form submitted:", data);
 
         const res = await authFetch(
           "/create-product/",
@@ -213,7 +212,99 @@ export function ModalHandler({
         });
       }
     }
-  };
+    if (action == Action.DELETE_PRODUCT){
+        try{
+          const res = await authFetch(
+            `/delete-product/${productId}/`,
+            {
+              method: "DELETE",
+            },
+            navigate,
+          );
+
+          if (!res.ok) {
+            throw new Error("Failed to delete product");
+          }
+
+          setAlert({
+            type: "default",
+            title: "Product deleted successfully",
+            description: "Product has been deleted.",
+          }); 
+
+          const listRes = await authFetch("/list-products/", {}, navigate);
+
+          if (!listRes.ok) {
+            navigate("/login");
+            return;
+          }
+          
+          const productsData = await listRes.json();
+          setProducts(productsData);
+        }
+        catch(e){
+          setAlert({
+            type: "destructive",
+            title: "Failed to delete product",
+            description: "Please try again later.",
+          });
+        }
+    }
+    if(action == Action.EDIT_PRODUCT){
+      try{
+        const data_filtered : { [key: string]: string | number } = {};
+
+        for(const pair of formData.entries()){
+          if(pair[1].toString().trim() !== ""){
+            data_filtered[pair[0]] = pair[1] as string;
+          }
+        }
+
+        if(data_filtered.price){
+          data_filtered.price = Number(data_filtered.price);
+        }
+
+        console.log(data_filtered);
+
+        const res = await authFetch(
+          `/edit-product/${productId}/`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data_filtered),
+          },
+          navigate,
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to edit product");
+        }
+        
+        setAlert({
+          type: "default",
+          title: "Product edited successfully",
+          description: "Product has been edited.",
+        });
+
+        const listRes = await authFetch("/list-products/", {}, navigate);
+        if (!listRes.ok) {
+          navigate("/login");
+          return;
+        }
+        const productsData = await listRes.json();
+        setProducts(productsData);
+
+      } catch (e) {
+        setAlert({
+          type: "destructive",
+          title: "Failed to edit product",
+          description: "Make sure all fields are filled correctly.",
+        });
+      }
+    }
+  }
   //
 
   return (
@@ -350,8 +441,8 @@ const Header: React.FC<HeaderProps> = ({
             )}
             <UserAvatar
               user={user}
-              products={products}
-              setProducts={setProducts}
+              products={products!}
+              setProducts={setProducts!}
             />
           </>
         ) : (

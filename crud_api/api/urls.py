@@ -6,6 +6,7 @@ from rest_framework_simplejwt.views import (
 
 from .views import (
     ProductCreateView,
+    ProductDestroyView,
     ProductEditView,
     ProductListView,
     ProfileView,
@@ -28,5 +29,8 @@ urlpatterns = [
     path("create-product/", ProductCreateView.as_view(), name="product_create"),
     path("list-products/", ProductListView.as_view(), name="product_list"),
     path("edit-product/<int:pk>/", ProductEditView.as_view(), name="product_edit"),
+    path(
+        "delete-product/<int:pk>/", ProductDestroyView.as_view(), name="product_delete"
+    ),
     # path("detail-user/<int:pk>/", UserDetailView.as_view(), name="product_detail"),
 ]
