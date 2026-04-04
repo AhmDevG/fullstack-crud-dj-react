@@ -305,7 +305,7 @@ export function ModalHandler({
       }
     }
   }
-  //
+
 
   return (
     <Dialog>
@@ -321,7 +321,7 @@ export function ModalHandler({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] [&>button]:hidden">
         <DialogHeader>
           <DialogTitle>
             {action == Action.ADD_PRODUCT ||
@@ -344,7 +344,7 @@ export function ModalHandler({
 
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline" onClick={(_) => setAlert(null)}>Cancel</Button>
             </DialogClose>
 
             {action == Action.DELETE_PRODUCT && (
