@@ -51,7 +51,7 @@ function App() {
       location.pathname !== "/login" &&
       location.pathname !== "/signup"
     ) {
-      navigate("/login");
+      navigate("/login" , {replace: true});
     } else if (user && location.pathname === "/login") {
       navigate("/products");
     }
@@ -86,7 +86,7 @@ function App() {
     setUser(null);
     setAccess_token(null);
     setRefresh_token(null);
-    navigate("/login");
+    navigate("/login" , {replace : true});
   }
 
   return loading ? (

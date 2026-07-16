@@ -1,18 +1,19 @@
 import type { NavigateFunction } from "react-router-dom";
 import API from "./globals";
+import type { RefreshResponse } from "./interfaces";
 
 let isLoggedOut = false;
 let refreshPromise: Promise<string | null> | null = null;
-
-interface RefreshResponse {
-    access: string;
-}
 
 export const authFetch = async (
     endpoint: string,
     options: RequestInit = {},
     navigate: NavigateFunction
 ) => {
+    if (isLoggedOut) {
+        return new Response(null, { status: 401 });
+    }
+
     let access = localStorage.getItem("access_token");
     const refresh = localStorage.getItem("refresh_token");
 

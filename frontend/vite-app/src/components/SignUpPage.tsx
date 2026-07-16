@@ -9,7 +9,7 @@ import API from "./utils/globals";
 
 function SignUpPage() {
   const [alert, setAlert] = useState<{
-    type: "default" | "destructive" | "success";
+    type: "default" | "destructive" ;
     title: string;
     description: string;
   } | null>(null);
@@ -35,7 +35,7 @@ function SignUpPage() {
       .then(async (response) => {
         if (response.ok) {
           setAlert({
-            type: "success",
+            type: "default",
             title: "Success",
             description: "User created successfully!",
           });

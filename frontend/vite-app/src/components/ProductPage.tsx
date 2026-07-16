@@ -1,31 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
-// import { Button } from "@/components/ui/button";
-import { ModalHandler, Action } from "./Header.tsx";
-import type { Product } from "./Header.tsx";
-import API from "./utils/globals";
+import { ModalHandler } from "./Header.tsx";
+import {Action} from "./utils/consts.ts"
 import { authFetch } from "./utils/authFetch.ts";
 import { Spinner } from "@/components/ui/spinner";
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  date_joined: string;
-}
-
-interface ProductPageProps {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  author: User;
-  date: string;
-  user: User;
-  products: Product[];
-  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
-}
+import type  { ProductPageProps  , User } from "./utils/interfaces.ts" 
+import type { Product} from "./utils/types.ts"
 
 function ProductsWrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -47,6 +28,7 @@ function ProductComponent({
   user,
   products,
   setProducts,
+  setUser
 }: ProductPageProps) {
   return (
     <Card className="max-w-md mt-8">
@@ -59,7 +41,7 @@ function ProductComponent({
         <p className="mb-2">ID: {id}</p>
 
         <div className="flex flex-col sm:flex-row justify-between">
-          {user.id == author.id && (
+          {user && user.id == author.id && (
             <div className="flex flex-col sm:flex-row">
               <ModalHandler
                 products={products}
@@ -67,6 +49,7 @@ function ProductComponent({
                 setProducts={setProducts}
                 action={Action.DELETE_PRODUCT}
                 productId={parseInt(id)}
+                setUser = {setUser}
               />
 
               <ModalHandler
@@ -75,6 +58,7 @@ function ProductComponent({
                 setProducts={setProducts}
                 action={Action.EDIT_PRODUCT}
                 productId={parseInt(id)}
+                setUser = {setUser}
               />
             </div>
           )}
@@ -98,27 +82,32 @@ function Loading() {
 }
 
 export function ProductPage({
-  access_token,
   products,
   setProducts,
   user,
+  setUser
 }: {
   access_token: string;
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
-  user: User;
+  user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>> 
 }) {
+
+  if(!user){
+      return ;
+  }
+
   const navigate = useNavigate();
 
   useEffect(() => {
+
     const fetchProducts = async () => {
       const res = await authFetch("/list-products/", {}, navigate);
 
       if (res.ok) {
         const data = await res.json();
         setProducts(data);
-      } else {
-        navigate("/login");
       }
     };
 
@@ -141,6 +130,7 @@ export function ProductPage({
               user={user}
               products={products}
               setProducts={setProducts}
+              setUser = {setUser}
             />
           ))}
       </ProductsWrapper>

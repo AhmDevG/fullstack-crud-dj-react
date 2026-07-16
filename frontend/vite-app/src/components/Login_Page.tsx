@@ -6,17 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import API from "./utils/globals";
+import { useNavigate } from "react-router-dom";
 
-interface LoginPageProps {
-  setUser: (user: any) => void;
-  setAccess: (token: string) => void;
-  setRefresh: (token: string) => void;
-}
 
-function LoginPage({ setUser, setAccess, setRefresh }: LoginPageProps) {
+function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   const [alert, setAlert] = useState<{
     type: "default" | "destructive";
     title: string;
@@ -36,8 +33,6 @@ function LoginPage({ setUser, setAccess, setRefresh }: LoginPageProps) {
       .then(async (response) => {
         const data = await response.json();
         if (response.ok) {
-          localStorage.setItem("access_token", data.access);
-          localStorage.setItem("refresh_token", data.refresh);
           setAlert({
             type: "default",
             title: "Success",
@@ -46,13 +41,11 @@ function LoginPage({ setUser, setAccess, setRefresh }: LoginPageProps) {
           setUsername("");
           setPassword("");
 
-          setAccess(data.access);
-          setRefresh(data.refresh);
-          const profileRes = await fetch(`${API}/profile/`, {
-            headers: { Authorization: `Bearer ${data.access}` },
-          });
-          const profileData = await profileRes.json();
-          setUser(profileData);
+          localStorage.setItem("access_token" , data.access);
+          localStorage.setItem("refresh_token" , data.refresh);
+
+          navigate("/products" , {replace : true});
+
         } else {
           setAlert({
             type: "destructive",
