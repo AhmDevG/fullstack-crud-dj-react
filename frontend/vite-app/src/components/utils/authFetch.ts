@@ -42,7 +42,10 @@ export const authFetch = async (
 
         isLoggedOut = true;
         localStorage.clear();
-        navigate("/login");
+
+        if(window.location.pathname !== "/login") {
+            navigate("/login" , {replace: true});
+        }
     };
 
     const refreshAccessToken = async (): Promise<string | null> => {
