@@ -1,44 +1,103 @@
+import type { NavigateFunction } from "react-router-dom";
 import API from "./globals";
 
-export const authFetch = async (endpoint, options = {}, navigate) => {
-  let access = localStorage.getItem("access_token");
-  const refresh = localStorage.getItem("refresh_token");
+let isLoggedOut = false;
+let refreshPromise: Promise<string | null> | null = null;
 
-  let response = await fetch(`${API}${endpoint}`, {
-    ...options,
-    headers: {
-      ...(options.headers || {}),
-      Authorization: `Bearer ${access}`,
-    },
-  });
+interface RefreshResponse {
+    access: string;
+}
 
-  if (response.status === 401 && refresh) {
-    const refreshRes = await fetch(`${API}/token/refresh/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh }),
-    });
+export const authFetch = async (
+    endpoint: string,
+    options: RequestInit = {},
+    navigate: NavigateFunction
+) => {
+    let access = localStorage.getItem("access_token");
+    const refresh = localStorage.getItem("refresh_token");
 
-    if (!refreshRes.ok) {
-      localStorage.clear();
-      if (navigate) navigate("/login");
-      return response;
+    const makeRequest = (token: string | null) => {
+        const headers = new Headers(options.headers);
+
+        if (token) {
+            headers.set("Authorization", `Bearer ${token}`);
+        }
+
+        if (
+            options.body &&
+            !(options.body instanceof FormData) &&
+            !headers.has("Content-Type")
+        ) {
+            headers.set("Content-Type", "application/json");
+        }
+
+        return fetch(`${API}${endpoint}`, {
+            ...options,
+            headers,
+        });
+    };
+
+    const logout = () => {
+        if (isLoggedOut) return;
+
+        isLoggedOut = true;
+        localStorage.clear();
+        navigate("/login");
+    };
+
+    const refreshAccessToken = async (): Promise<string | null> => {
+        if (!refresh) return null;
+
+        const refreshRes = await fetch(`${API}/token/refresh/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ refresh }),
+        });
+
+        if (!refreshRes.ok) {
+            return null;
+        }
+
+        const data: RefreshResponse = await refreshRes.json();
+
+        if (!data.access) {
+            return null;
+        }
+
+        localStorage.setItem("access_token", data.access);
+        isLoggedOut = false;
+
+        return data.access;
+    };
+
+    let response = await makeRequest(access);
+
+    if (response.status !== 401) {
+        return response;
     }
 
-    const data = await refreshRes.json();
-    access = data.access;
+    if (!refresh) {
+        logout();
+        return response;
+    }
 
-    localStorage.setItem("access_token", access);
+    
+    if (!refreshPromise) {
+        refreshPromise = refreshAccessToken().finally(() => {
+            refreshPromise = null;
+        });
+    }
 
-    // retry request
-    response = await fetch(`${API}${endpoint}`, {
-      ...options,
-      headers: {
-        ...(options.headers || {}),
-        Authorization: `Bearer ${access}`,
-      },
-    });
-  }
+    
+    access = await refreshPromise;
 
-  return response;
+    if (!access) {
+        logout();
+        return response;
+    }
+
+    
+    return makeRequest(access);
 };
