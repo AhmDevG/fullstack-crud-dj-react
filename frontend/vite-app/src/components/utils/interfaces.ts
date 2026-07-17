@@ -24,6 +24,11 @@ interface RefreshResponse {
     access: string;
 }
 
+interface PasswordResponse {
+    access: string;
+    refresh: string;
+}
+
 interface EditDataProps {
   user: User | null;
   action: Action;
@@ -32,5 +37,5 @@ interface EditDataProps {
 }
 
 export type {
-    User , ProductPageProps , RefreshResponse , EditDataProps
+    User , ProductPageProps , RefreshResponse , EditDataProps , PasswordResponse
 }
