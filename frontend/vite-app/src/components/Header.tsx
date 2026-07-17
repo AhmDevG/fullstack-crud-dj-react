@@ -445,7 +445,7 @@ const Header: React.FC<HeaderProps> = ({
                         )}
                         <UserAvatar
                             user={user}
-                            setUser={setUser}
+                            setUser={setUser!}
                             products={products!}
                             setProducts={setProducts!}
                         />

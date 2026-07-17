@@ -6,7 +6,7 @@ type Action = typeof Action[keyof typeof Action];
 
 type HeaderProps = {
   user?: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  setUser?: React.Dispatch<React.SetStateAction<User | null>>;
   onLogout?: () => void;
   products?: Product[];
   setProducts?: React.Dispatch<React.SetStateAction<Product[]>>;
