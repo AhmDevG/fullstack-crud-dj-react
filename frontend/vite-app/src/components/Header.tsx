@@ -24,9 +24,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { authFetch } from "./utils/authFetch";
-import type { User, EditDataProps } from "./utils/interfaces.ts"
+import type { User, EditDataProps , } from "./utils/interfaces.ts"
 import { Action } from "./utils/consts.ts"
-import type { Action as ActionType, Product, HeaderProps } from "./utils/types.ts"
+import type { Action as ActionType, HeaderProps , UserAvatarProps} from "./utils/types.ts"
 
 
 
@@ -365,12 +365,7 @@ export function ModalHandler({
     );
 }
 
-const UserAvatar: React.FC<{
-    user: User;
-    setUser: React.Dispatch<React.SetStateAction<User | null>>;
-    products: Product[];
-    setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
-}> = ({ user, products, setProducts, setUser }) => {
+const UserAvatar: React.FC<UserAvatarProps> = ({ user, products, setProducts, setUser }) => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -451,7 +446,6 @@ const Header: React.FC<HeaderProps> = ({
                         <UserAvatar
                             user={user}
                             setUser={setUser}
-                            // Dispatch<SetStateAction<User|null>>
                             products={products!}
                             setProducts={setProducts!}
                         />
