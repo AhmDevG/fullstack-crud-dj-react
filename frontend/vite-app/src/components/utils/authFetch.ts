@@ -61,6 +61,8 @@ export const authFetch = async (
         });
 
         if (!refreshRes.ok) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
             return null;
         }
 

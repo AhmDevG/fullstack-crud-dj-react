@@ -4,7 +4,6 @@ import {
   Route,
   useNavigate,
   useLocation,
-  // Navigate,
 } from "react-router-dom";
 import LoginPage from "./components/Login_Page";
 import Header from "./components/Header";
@@ -14,34 +13,19 @@ import { useEffect, useState } from "react";
 import LoadingPage from "./components/Loading_Page";
 import API from "./components/utils/globals";
 import { authFetch } from "./components/utils/authFetch";
-
-type User = {
-  username: string;
-  id: number;
-  email: string;
-};
-
-interface ProductPageProps {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  author: User;
-  date: string;
-}
+import type {User} from "./components/utils/interfaces.ts"
+import type { Product } from "./components/utils/types.ts";
+import {ProtectedRoute} from "./components/utils/ProtectedRoute.tsx";
+import { UnProtectedRoute } from "./components/utils/unProtectedRoute.tsx";
 
 function App() {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [access_token, setAccess_token] = useState<string | null>(
-    localStorage.getItem("access_token"),
-  );
-  const [refresh_token, setRefresh_token] = useState<string | null>(
-    localStorage.getItem("refresh_token"),
-  );
   const location = useLocation();
-  const [products, setProducts] = useState<ProductPageProps[]>([]);
+  const access_token = localStorage.getItem("access_token");
+  const refresh_token = localStorage.getItem("refresh_token");
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     if (loading) return;
@@ -55,38 +39,44 @@ function App() {
     } else if (user && location.pathname === "/login") {
       navigate("/products");
     }
-  }, [user, location.pathname, navigate, loading]);
+  }, [user, location.pathname, loading]);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res: Response = await authFetch("/profile/", {}, navigate);
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-        }
-      } catch (err) {
-        console.log(err);
-      } finally {
-        setLoading(false);
+      if(location.pathname == "/login" || location.pathname == "/signup" || !access_token){
+          setLoading(false);
+          return;
       }
-    };
 
-    fetchProfile();
-  }, [navigate]);
+      console.log("Fetch Profile.")
+      const fetchProfile = async () => {
+          try {
+              const res: Response = await authFetch("/profile/", {}, navigate);
+              if (res.ok) {
+                  const data = await res.json();
+                  setUser(data);
+              }
+          } finally {
+              setLoading(false);
+          }
+      };
 
-  function onLogout() {
-    fetch(`${API}/api/logout/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refresh: refresh_token }),
-    });
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    setUser(null);
-    setAccess_token(null);
-    setRefresh_token(null);
-    navigate("/login" , {replace : true});
+      fetchProfile();
+  }, [location.pathname , access_token]);
+
+  async function onLogout() {
+      try{
+        await fetch(`${API}/logout/`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refresh: refresh_token }),
+        });
+      }
+     finally {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        setUser(null);
+        navigate("/login" , {replace : true});
+     }
   }
 
   return loading ? (
@@ -95,6 +85,7 @@ function App() {
     <>
       <Header
         user={user}
+        setUser = {setUser}
         onLogout={onLogout}
         products={products}
         setProducts={setProducts}
@@ -103,38 +94,44 @@ function App() {
         <Route
           path="/login"
           element={
-            <LoginPage
-              setUser={setUser}
-              setAccess={setAccess_token}
-              setRefresh={setRefresh_token}
-            />
+              <UnProtectedRoute>
+                  <LoginPage />
+              </UnProtectedRoute>
           }
         />
         <Route
           path="/products"
           element={
-            <ProductPage
-              access_token={access_token}
-              products={products}
-              setProducts={setProducts}
-              user={user}
-            />
+              <ProtectedRoute>
+                    <ProductPage
+                      products={products}
+                      setProducts={setProducts}
+                      user={user}
+                      setUser = {setUser}
+                    />
+              </ProtectedRoute>
           }
         />
         <Route
           path="/"
           element={
-            <ProductPage
-              access_token={access_token}
-              products={products}
-              setProducts={setProducts}
-            />
+              <ProtectedRoute>
+                <ProductPage
+                  products={products}
+                  setProducts={setProducts}
+                  setUser = {setUser}
+                />
+              </ProtectedRoute>
           }
         />
-        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/signup" element={
+              <UnProtectedRoute>
+                <SignUpPage /> 
+              </UnProtectedRoute>
+        } 
+        />
       </Routes>
-    </>
-  );
+    </>);
 }
 
 export default function AppWithRouter() {

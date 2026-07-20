@@ -162,6 +162,8 @@ export function ModalHandler({
                 const listRes = await authFetch("/list-products/", {}, navigate);
 
                 if (!listRes.ok) {
+                    localStorage.removeItem("access_token");
+                    localStorage.removeItem("refresh_token");
                     navigate("/login", { replace: true });
                     return;
                 }
@@ -199,6 +201,8 @@ export function ModalHandler({
                 const listRes = await authFetch("/list-products/", {}, navigate);
 
                 if (!listRes.ok) {
+                    localStorage.removeItem("access_token");
+                    localStorage.removeItem("refresh_token");
                     navigate("/login", { replace: true });
                     return;
                 }
@@ -252,6 +256,8 @@ export function ModalHandler({
 
                 const listRes = await authFetch("/list-products/", {}, navigate);
                 if (!listRes.ok) {
+                    localStorage.removeItem("access_token");
+                    localStorage.removeItem("refresh_token");
                     navigate("/login", { replace: true });
                     return;
                 }
@@ -288,6 +294,8 @@ export function ModalHandler({
                 const listRes = await authFetch("/list-products/", {}, navigate);
 
                 if (!listRes.ok) {
+                    localStorage.removeItem("access_token");
+                    localStorage.removeItem("refresh_token");
                     navigate("/login", { replace: true });
                     return;
                 }

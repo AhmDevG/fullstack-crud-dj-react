@@ -110,6 +110,8 @@ export function ProductPage({
         setProducts(data);
       }
       else{
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
           navigate("/login" , {replace : true});
       }
     };
