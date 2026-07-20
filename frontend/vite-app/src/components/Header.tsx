@@ -24,7 +24,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { authFetch } from "./utils/authFetch";
-import type { User, EditDataProps , } from "./utils/interfaces.ts"
+import type { User, EditDataProps, PasswordResponse } from "./utils/interfaces.ts"
 import { Action } from "./utils/consts.ts"
 import type { Action as ActionType, HeaderProps , UserAvatarProps} from "./utils/types.ts"
 
@@ -94,7 +94,7 @@ function handleActionInput(
                 </>
             );
         case Action.EDIT_PRODUCT:
-            return (
+            return  (
                 <>
                     <Label htmlFor="name">Name</Label>
                     <Input id="name" name="name" />
@@ -303,6 +303,87 @@ export function ModalHandler({
                     description: "Please try again later.",
                 });
             }
+        }
+        if(action == Action.EDIT_PASSWORD){
+            try{
+                if (!String(data.password).trim()) {
+                    throw new Error("Password cannot be empty");
+                }
+                const res = await authFetch(`/update-password/`, {
+                    method: "PATCH",
+                    body: JSON.stringify({ password: data.password }),
+                }, navigate);
+
+                if (!res.ok) {
+                    throw new Error("Failed to update password");
+                }
+
+                setAlert({
+                    type: "default",
+                    title: "Password updated successfully",
+                    description: "Password has been updated.",
+                });
+
+                const responseData : PasswordResponse = await res.json();
+
+                const access_token  = responseData.access;
+                const refresh_token = responseData.refresh;
+
+                localStorage.setItem("access_token" , access_token);
+                localStorage.setItem("refresh_token" , refresh_token);
+            }
+           catch(e) {
+                setAlert({
+                    type: "destructive",
+                    title: "Failed to update password",
+                    description: "Please try again later.",
+                });
+           }
+        }
+        if(action == Action.DELETE_ACCOUNT){
+            try{
+                if (!String(data.password).trim()) {
+                    throw new Error("Password cannot be empty");
+                }
+                let res = await authFetch(`/check-password/`, {
+                    method: "POST",
+                    body: JSON.stringify({ password: data.password }),
+                }, navigate);
+
+
+                if (!res.ok) {
+                    throw new Error("Failed to update password");
+                }
+
+                const resData = await res.json();
+
+                if(!resData.valid){
+                    throw new Error("Wrong password");
+                }
+
+
+                res = await authFetch("/delete-account/" , {
+                    method : "DELETE" ,
+                    body : JSON.stringify({refresh : localStorage.getItem("refresh_token")}),
+                } , navigate) ;
+
+                setAlert({
+                    type: "default",
+                    title: "deleted successfully",
+                    description: "account deleted successfully",
+                });
+
+                localStorage.removeItem("access_token");
+                localStorage.removeItem("refresh_token");
+                window.location.reload();
+            }
+           catch(e) {
+                setAlert({
+                    type: "destructive",
+                    title: "Wrong password or you are not authenticated",
+                    description: "Please try again later.",
+                });
+           }
         }
     }
 

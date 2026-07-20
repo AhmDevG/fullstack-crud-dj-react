@@ -49,7 +49,7 @@ function ProductComponent({
                 setProducts={setProducts}
                 action={Action.DELETE_PRODUCT}
                 productId={parseInt(id)}
-                setUser = {setUser}
+                setUser = {setUser!}
               />
 
               <ModalHandler
@@ -58,7 +58,7 @@ function ProductComponent({
                 setProducts={setProducts}
                 action={Action.EDIT_PRODUCT}
                 productId={parseInt(id)}
-                setUser = {setUser}
+                setUser = {setUser!}
               />
             </div>
           )}
@@ -108,6 +108,9 @@ export function ProductPage({
       if (res.ok) {
         const data = await res.json();
         setProducts(data);
+      }
+      else{
+          navigate("/login" , {replace : true});
       }
     };
 
