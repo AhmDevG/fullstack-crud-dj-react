@@ -45,12 +45,14 @@ class ProductSerializer(serializers.ModelSerializer):
        user = self.context['request'].user   
 
        if Product.objects.filter(
-                   user = user  , 
+                   author = user  , 
                    name = attrs["name"]
                ).exists():
           raise serializers.ValidationError({
                   "name" : "You already have a product with this name try another one"
           })
+
+       return attrs
 
 
     def create(self, validated_data):
