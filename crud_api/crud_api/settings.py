@@ -159,7 +159,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 CORS_ALLOW_ALL_ORIGINS = False 
 
 CORS_ALLOWED_ORIGINS = [
-    "https://fullstack-crud-dj-react-2v3s-n9r6ln31c-crudrdj.vercel.app",
+    "https://fullstack-crud-dj-react-2v3s-n9r6ln31c-crudrdj.vercel.app/",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
