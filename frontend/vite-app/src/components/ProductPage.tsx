@@ -87,7 +87,6 @@ export function ProductPage({
   user,
   setUser
 }: {
-  access_token: string;
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   user: User | null;

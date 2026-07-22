@@ -80,7 +80,7 @@ function App() {
   }
 
   return loading ? (
-    <LoadingPage user={user} onLogout={onLogout} />
+    <LoadingPage />
   ) : (
     <>
       <Header
@@ -119,6 +119,7 @@ function App() {
                 <ProductPage
                   products={products}
                   setProducts={setProducts}
+                  user = {user}
                   setUser = {setUser}
                 />
               </ProtectedRoute>
