@@ -29,5 +29,11 @@ type UserAvatarProps = {
    setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
+type AlertState = {
+    type: "default" | "destructive";
+    title: string;
+    description: string;
+};
 
-export type { Action , HeaderProps , Product , UserAvatarProps}
+
+export type { Action , HeaderProps , Product , UserAvatarProps , AlertState}

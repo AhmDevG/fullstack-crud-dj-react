@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import type {Dispatch , SetStateAction} from "react";
+import { Link, useLocation, type NavigateFunction } from "react-router-dom";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +27,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { authFetch } from "./utils/authFetch";
 import type { User, EditDataProps, PasswordResponse } from "./utils/interfaces.ts"
 import { Action } from "./utils/consts.ts"
-import type { Action as ActionType, HeaderProps , UserAvatarProps} from "./utils/types.ts"
+import type { Action as ActionType, HeaderProps , UserAvatarProps , AlertState, Product}  from "./utils/types.ts"
 
 
 
@@ -112,6 +113,321 @@ function handleActionInput(
             return null;
     }
 }
+
+async function edit_username(
+    navigate: NavigateFunction,
+    _data: Record<string, FormDataEntryValue>,
+    setAlert: Dispatch<SetStateAction<AlertState | null>>,
+    _setProducts: Dispatch<SetStateAction<Product[]>>,
+    _setUser: Dispatch<SetStateAction<User | null>>,
+    _productId: number | null
+){
+    try {
+        if (!String(_data.username).trim()) {
+            throw new Error("Username cannot be empty");
+        }
+        const res = await authFetch(`/update-username/`, {
+            method: "PATCH",
+            body: JSON.stringify({ username: _data.username }),
+        }, navigate);
+
+        if (!res.ok) {
+            throw new Error("Failed to update username");
+        }
+
+        setAlert({
+            type: "default",
+            title: "Username updated successfully",
+            description: "Username has been updated.",
+        });
+        const listRes = await authFetch("/list-products/", {}, navigate);
+
+        if (!listRes.ok) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            navigate("/login", { replace: true });
+            return;
+        }
+
+        _setProducts(await listRes.json());
+
+        _setUser((prev: User | null) => prev ? { ...prev, username: _data.username as string } : prev);
+    }
+    catch (e) {
+        setAlert({
+            type: "destructive",
+            title: "Failed to update username",
+            description: "Please try again later.",
+        });
+    }
+}
+async function edit_password(
+    navigate: NavigateFunction,
+    _data: Record<string, FormDataEntryValue>,
+    setAlert: Dispatch<SetStateAction<AlertState | null>>,
+    _setProducts: Dispatch<SetStateAction<Product[]>>,
+    _setUser: Dispatch<SetStateAction<User | null>>,
+    _productId: number | null
+){
+    try{
+        if (!String(_data.password).trim()) {
+            throw new Error("Password cannot be empty");
+        }
+        const res = await authFetch(`/update-password/`, {
+            method: "PATCH",
+            body: JSON.stringify({ password: _data.password }),
+        }, navigate);
+
+        if (!res.ok) {
+            throw new Error("Failed to update password");
+        }
+
+        setAlert({
+            type: "default",
+            title: "Password updated successfully",
+            description: "Password has been updated.",
+        });
+
+        const responseData : PasswordResponse = await res.json();
+
+        const access_token  = responseData.access;
+        const refresh_token = responseData.refresh;
+
+        localStorage.setItem("access_token" , access_token);
+        localStorage.setItem("refresh_token" , refresh_token);
+    }
+    catch(e) {
+        setAlert({
+            type: "destructive",
+            title: "Failed to update password",
+            description: "Please try again later.",
+        });
+    }
+}
+async function delete_account(
+    navigate: NavigateFunction,
+    _data: Record<string, FormDataEntryValue>,
+    setAlert: Dispatch<SetStateAction<AlertState | null>>,
+    _setProducts: Dispatch<SetStateAction<Product[]>>,
+    _setUser: Dispatch<SetStateAction<User | null>>,
+    _productId: number | null
+){
+    try{
+        if (!String(_data.password).trim()) {
+            throw new Error("Password cannot be empty");
+        }
+        let res = await authFetch(`/check-password/`, {
+            method: "POST",
+            body: JSON.stringify({ password: _data.password }),
+        }, navigate);
+
+
+        if (!res.ok) {
+            throw new Error("Failed to update password");
+        }
+
+        const resData = await res.json();
+
+        if(!resData.valid){
+            throw new Error("Wrong password");
+        }
+
+
+        res = await authFetch("/delete-account/" , {
+            method : "DELETE" ,
+            body : JSON.stringify({refresh : localStorage.getItem("refresh_token")}),
+        } , navigate) ;
+
+        setAlert({
+            type: "default",
+            title: "deleted successfully",
+            description: "account deleted successfully",
+        });
+
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        window.location.reload();
+    }
+    catch(e) {
+        setAlert({
+            type: "destructive",
+            title: "Wrong password or you are not authenticated",
+            description: "Please try again later.",
+        });
+    }
+}
+
+async function add_product(
+    navigate: NavigateFunction,
+    _data: Record<string, FormDataEntryValue>,
+    setAlert: Dispatch<SetStateAction<AlertState | null>>,
+    _setProducts: Dispatch<SetStateAction<Product[]>>,
+    _setUser: Dispatch<SetStateAction<User | null>>,
+    _productId: number | null
+){
+    try {
+        const res = await authFetch(
+            "/create-product/",
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(_data),
+            },
+            navigate,
+        );
+
+        if (!res.ok) {
+            throw new Error("Failed to create product");
+        }
+
+        setAlert({
+            type: "default",
+            title: "Product created successfully",
+            description: "Product has been created.",
+        });
+
+        const listRes = await authFetch("/list-products/", {}, navigate);
+
+        if (!listRes.ok) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            navigate("/login", { replace: true });
+            return;
+        }
+
+        const productsData = await listRes.json();
+        _setProducts(productsData);
+    } catch (e) {
+        setAlert({
+            type: "destructive",
+            title: "Failed to create product",
+            description: "Please try again later.",
+        });
+    }
+}
+async function edit_product(
+    navigate: NavigateFunction,
+    _data: Record<string, FormDataEntryValue>,
+    setAlert: Dispatch<SetStateAction<AlertState | null>>,
+    _setProducts: Dispatch<SetStateAction<Product[]>>,
+    _setUser: Dispatch<SetStateAction<User | null>>,
+    _productId: number | null
+){
+    try {
+        const data_filtered = Object.fromEntries(
+            Object.entries(_data).filter(
+                ([, value]) => value.toString().trim() !== ""
+            )
+        ) as Record<string, string | number>;
+
+        if (data_filtered.price) {
+            data_filtered.price = Number(data_filtered.price);
+        }
+
+        const res = await authFetch(
+            `/edit-product/${_productId}/`,
+            {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data_filtered),
+            },
+            navigate,
+        );
+
+        if (!res.ok) {
+            throw new Error("Failed to edit product");
+        }
+
+        setAlert({
+            type: "default",
+            title: "Product edited successfully",
+            description: "Product has been edited.",
+        });
+
+        const listRes = await authFetch("/list-products/", {}, navigate);
+        if (!listRes.ok) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            navigate("/login", { replace: true });
+            return;
+        }
+        const productsData = await listRes.json();
+        _setProducts(productsData);
+
+    } catch (e) {
+        setAlert({
+            type: "destructive",
+            title: "Failed to edit product",
+            description: "Make sure all fields are filled correctly.",
+        });
+    }
+
+}
+async function delete_product(
+    navigate: NavigateFunction,
+    _data: Record<string, FormDataEntryValue>,
+    setAlert: Dispatch<SetStateAction<AlertState | null>>,
+    _setProducts: Dispatch<SetStateAction<Product[]>>,
+    _setUser: Dispatch<SetStateAction<User | null>>,
+    _productId: number | null
+){
+    try {
+        const res = await authFetch(
+            `/delete-product/${_productId}/`,
+            {
+                method: "DELETE",
+            },
+            navigate,
+        );
+
+        if (!res.ok) {
+            throw new Error("Failed to delete product");
+        }
+
+        setAlert({
+            type: "default",
+            title: "Product deleted successfully",
+            description: "Product has been deleted.",
+        });
+
+        const listRes = await authFetch("/list-products/", {}, navigate);
+
+        if (!listRes.ok) {
+            localStorage.removeItem("access_token");
+            localStorage.removeItem("refresh_token");
+            navigate("/login", { replace: true });
+            return;
+        }
+
+        const productsData = await listRes.json();
+        _setProducts(productsData);
+    }
+    catch (e) {
+        setAlert({
+            type: "destructive",
+            title: "Failed to delete product",
+            description: "Please try again later.",
+        });
+    }
+}
+
+
+
+const actions   = {
+    [Action.EDIT_USERNAME ]: edit_username ,  
+    [Action.EDIT_PASSWORD ]: edit_password ,
+    [Action.DELETE_ACCOUNT] : delete_account  ,
+
+    [Action.ADD_PRODUCT]  : add_product  ,
+    [Action.EDIT_PRODUCT]   : edit_product   ,
+    [Action.DELETE_PRODUCT]   : delete_product   ,
+}  
+
+
 export function ModalHandler({
     user,
     action,
@@ -131,267 +447,13 @@ export function ModalHandler({
         e.preventDefault();
 
         const formData = new FormData(e.currentTarget);
-        const data = Object.fromEntries(formData.entries());
-
-        if (action === Action.ADD_PRODUCT) {
-            try {
-                // console.log("Form submitted:", data);
-
-                const res = await authFetch(
-                    "/create-product/",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(data),
-                    },
-                    navigate,
-                );
-
-                if (!res.ok) {
-                    throw new Error("Failed to create product");
-                }
-
-                setAlert({
-                    type: "default",
-                    title: "Product created successfully",
-                    description: "Product has been created.",
-                });
-
-                const listRes = await authFetch("/list-products/", {}, navigate);
-
-                if (!listRes.ok) {
-                    localStorage.removeItem("access_token");
-                    localStorage.removeItem("refresh_token");
-                    navigate("/login", { replace: true });
-                    return;
-                }
-
-                const productsData = await listRes.json();
-                setProducts(productsData);
-            } catch (e) {
-                setAlert({
-                    type: "destructive",
-                    title: "Failed to create product",
-                    description: "Please try again later.",
-                });
-            }
-        }
-        if (action == Action.DELETE_PRODUCT) {
-            try {
-                const res = await authFetch(
-                    `/delete-product/${productId}/`,
-                    {
-                        method: "DELETE",
-                    },
-                    navigate,
-                );
-
-                if (!res.ok) {
-                    throw new Error("Failed to delete product");
-                }
-
-                setAlert({
-                    type: "default",
-                    title: "Product deleted successfully",
-                    description: "Product has been deleted.",
-                });
-
-                const listRes = await authFetch("/list-products/", {}, navigate);
-
-                if (!listRes.ok) {
-                    localStorage.removeItem("access_token");
-                    localStorage.removeItem("refresh_token");
-                    navigate("/login", { replace: true });
-                    return;
-                }
-
-                const productsData = await listRes.json();
-                setProducts(productsData);
-            }
-            catch (e) {
-                setAlert({
-                    type: "destructive",
-                    title: "Failed to delete product",
-                    description: "Please try again later.",
-                });
-            }
-        }
-        if (action == Action.EDIT_PRODUCT) {
-            try {
-                const data_filtered: { [key: string]: string | number } = {};
-
-                for (const pair of formData.entries()) {
-                    if (pair[1].toString().trim() !== "") {
-                        data_filtered[pair[0]] = pair[1] as string;
-                    }
-                }
-
-                if (data_filtered.price) {
-                    data_filtered.price = Number(data_filtered.price);
-                }
-
-                const res = await authFetch(
-                    `/edit-product/${productId}/`,
-                    {
-                        method: "PATCH",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(data_filtered),
-                    },
-                    navigate,
-                );
-
-                if (!res.ok) {
-                    throw new Error("Failed to edit product");
-                }
-
-                setAlert({
-                    type: "default",
-                    title: "Product edited successfully",
-                    description: "Product has been edited.",
-                });
-
-                const listRes = await authFetch("/list-products/", {}, navigate);
-                if (!listRes.ok) {
-                    localStorage.removeItem("access_token");
-                    localStorage.removeItem("refresh_token");
-                    navigate("/login", { replace: true });
-                    return;
-                }
-                const productsData = await listRes.json();
-                setProducts(productsData);
-
-            } catch (e) {
-                setAlert({
-                    type: "destructive",
-                    title: "Failed to edit product",
-                    description: "Make sure all fields are filled correctly.",
-                });
-            }
-        }
-        if (action == Action.EDIT_USERNAME) {
-            try {
-                if (!String(data.username).trim()) {
-                    throw new Error("Username cannot be empty");
-                }
-                const res = await authFetch(`/update-username/`, {
-                    method: "PATCH",
-                    body: JSON.stringify({ username: data.username }),
-                }, navigate);
-
-                if (!res.ok) {
-                    throw new Error("Failed to update username");
-                }
-
-                setAlert({
-                    type: "default",
-                    title: "Username updated successfully",
-                    description: "Username has been updated.",
-                });
-                const listRes = await authFetch("/list-products/", {}, navigate);
-
-                if (!listRes.ok) {
-                    localStorage.removeItem("access_token");
-                    localStorage.removeItem("refresh_token");
-                    navigate("/login", { replace: true });
-                    return;
-                }
-
-                setProducts(await listRes.json());
-
-                setUser((prev: User | null) => prev ? { ...prev, username: data.username as string } : prev);
-            }
-            catch (e) {
-                setAlert({
-                    type: "destructive",
-                    title: "Failed to update username",
-                    description: "Please try again later.",
-                });
-            }
-        }
-        if(action == Action.EDIT_PASSWORD){
-            try{
-                if (!String(data.password).trim()) {
-                    throw new Error("Password cannot be empty");
-                }
-                const res = await authFetch(`/update-password/`, {
-                    method: "PATCH",
-                    body: JSON.stringify({ password: data.password }),
-                }, navigate);
-
-                if (!res.ok) {
-                    throw new Error("Failed to update password");
-                }
-
-                setAlert({
-                    type: "default",
-                    title: "Password updated successfully",
-                    description: "Password has been updated.",
-                });
-
-                const responseData : PasswordResponse = await res.json();
-
-                const access_token  = responseData.access;
-                const refresh_token = responseData.refresh;
-
-                localStorage.setItem("access_token" , access_token);
-                localStorage.setItem("refresh_token" , refresh_token);
-            }
-           catch(e) {
-                setAlert({
-                    type: "destructive",
-                    title: "Failed to update password",
-                    description: "Please try again later.",
-                });
-           }
-        }
-        if(action == Action.DELETE_ACCOUNT){
-            try{
-                if (!String(data.password).trim()) {
-                    throw new Error("Password cannot be empty");
-                }
-                let res = await authFetch(`/check-password/`, {
-                    method: "POST",
-                    body: JSON.stringify({ password: data.password }),
-                }, navigate);
+        const data : {[k: string]: FormDataEntryValue}  = Object.fromEntries(formData.entries());
 
 
-                if (!res.ok) {
-                    throw new Error("Failed to update password");
-                }
-
-                const resData = await res.json();
-
-                if(!resData.valid){
-                    throw new Error("Wrong password");
-                }
-
-
-                res = await authFetch("/delete-account/" , {
-                    method : "DELETE" ,
-                    body : JSON.stringify({refresh : localStorage.getItem("refresh_token")}),
-                } , navigate) ;
-
-                setAlert({
-                    type: "default",
-                    title: "deleted successfully",
-                    description: "account deleted successfully",
-                });
-
-                localStorage.removeItem("access_token");
-                localStorage.removeItem("refresh_token");
-                window.location.reload();
-            }
-           catch(e) {
-                setAlert({
-                    type: "destructive",
-                    title: "Wrong password or you are not authenticated",
-                    description: "Please try again later.",
-                });
-           }
+        const handler : Function  =  actions[action];
+        if (handler) {
+            // console.log(`called ${handler.name}`);
+            handler(navigate , data , setAlert , setProducts , setUser  , productId);
         }
     }
 
