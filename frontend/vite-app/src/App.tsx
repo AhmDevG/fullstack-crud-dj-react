@@ -16,7 +16,7 @@ import { authFetch } from "./components/utils/authFetch";
 import type {User} from "./components/utils/interfaces.ts"
 import type { Product } from "./components/utils/types.ts";
 import {ProtectedRoute} from "./components/utils/ProtectedRoute.tsx";
-import { UnProtectedRoute } from "./components/utils/unProtectedRoute.tsx";
+import { UnProtectedRoute } from "./components/utils/UnProtectedRoute.tsx";
 
 function App() {
   const navigate = useNavigate();

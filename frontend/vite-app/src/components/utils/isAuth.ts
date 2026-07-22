@@ -44,12 +44,12 @@ export async function isAuthUser(): Promise<boolean> {
         }
 
         const data = await refreshRes.json();
+        const newAccess : string =  data.access;
 
-        access = data.access;
-        localStorage.setItem("access_token", access);
+        localStorage.setItem("access_token", newAccess);
 
         
-        const profileRes = await checkProfile(access);
+        const profileRes = await checkProfile(newAccess);
 
         if (!profileRes.ok) {
             localStorage.removeItem("access_token");
