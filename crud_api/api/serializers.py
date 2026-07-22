@@ -41,6 +41,18 @@ class ProductSerializer(serializers.ModelSerializer):
             "id": {"read_only": True},
         }
 
+    def validate(self , attrs):
+       user = self.context['request'].user   
+
+       if Product.objects.filter(
+                   user = user  , 
+                   name = attrs["name"]
+               ).exists():
+          raise serializers.ValidationError({
+                  "name" : "You already have a product with this name try another one"
+          })
+
+
     def create(self, validated_data):
         user = self.context["request"].user
         return Product.objects.create(author=user, **validated_data)

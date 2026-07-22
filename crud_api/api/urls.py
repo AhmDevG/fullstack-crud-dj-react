@@ -15,6 +15,7 @@ from .views import (
     logout,
     update_password,
     update_username,
+    CheckPasswordView
 )
 
 urlpatterns = [
@@ -25,6 +26,7 @@ urlpatterns = [
     path("logout/", logout, name="logout"),
     path("update-username/", update_username, name="update_username"),
     path("update-password/", update_password, name="update_password"),
+    path("check-password/", CheckPasswordView.as_view(), name="check_password"),
     path("create-user/", create_user, name="create_user"),
     path("create-product/", ProductCreateView.as_view(), name="product_create"),
     path("list-products/", ProductListView.as_view(), name="product_list"),
@@ -32,5 +34,4 @@ urlpatterns = [
     path(
         "delete-product/<int:pk>/", ProductDestroyView.as_view(), name="product_delete"
     ),
-    # path("detail-user/<int:pk>/", UserDetailView.as_view(), name="product_detail"),
 ]

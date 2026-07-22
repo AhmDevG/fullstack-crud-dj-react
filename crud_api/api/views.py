@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.generics import (
@@ -11,6 +12,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
+
 
 from .models import Product
 from .serializers import ProductSerializer
@@ -52,8 +55,27 @@ class ProductDestroyView(DestroyAPIView):
         user = self.request.user
         return Product.objects.filter(author=user)
 
+class CheckPasswordView(APIView):
+    permission_classes = [IsAuthenticated]
 
+    def post(self, request):
+        password = self.request.data.get("password")
 
+        if not password:
+            return Response(
+                {"detail": "Password is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = authenticate(
+            username=request.user.username,
+            password=password,
+        )
+
+        return Response(
+            {"valid": user is not None},
+            status=status.HTTP_200_OK,
+        )
 
 
 @api_view(["POST"])
@@ -137,5 +159,19 @@ def update_password(request):
 @permission_classes([IsAuthenticated])
 def delete_account(request):
     user = request.user
+
+    refresh_token = request.data.get("refresh")
+
+    if refresh_token:
+        try:
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+        except TokenError:
+            pass
+
     user.delete()
-    return Response({"message": "User deleted"})
+
+    return Response(
+        {"message": "Account deleted successfully"},
+        status=status.HTTP_200_OK,
+    )
