@@ -452,7 +452,6 @@ export function ModalHandler({
 
         const handler : Function  =  actions[action];
         if (handler) {
-            // console.log(`called ${handler.name}`);
             handler(navigate , data , setAlert , setProducts , setUser  , productId);
         }
     }
